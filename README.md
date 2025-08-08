@@ -3,17 +3,10 @@
 A simple, chat-based budgeting agent that helps you set category budgets, track spending, and see how much you have left—kept lightweight and fully terminal-driven.
 
 ## Features
-- Natural-language chat commands (set budgets, add expenses, summary, list, save/quit)
-- USD formatting with 2 decimals
+ Add or create new categories via chat
 - JSON persistence to `data/budget_state.json` (auto-created)
 - Optional receipt OCR parser (install Pillow + Tesseract OCR to enable)
-
-## Quickstart (Windows, PowerShell)
-```powershell
-# From repo root
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+ - Auto-categorization: if you say "spent 30 on groceries" and you have a "Food" category, it will map it automatically.
 pip install -r requirements.dev.txt  # optional: tests & dev tools
 
 # Run tests (optional)
@@ -26,6 +19,7 @@ python .\chat.py
 Try commands:
 - set Food to $200
 - spent $12.50 on Food
+- spent 30 on groceries   # auto-categorizes to Food if present
 - add 5 to Fun
 - show summary
 - list categories

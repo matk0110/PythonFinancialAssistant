@@ -5,6 +5,7 @@ from src.persistence.storage import load_budget, save_budget
 from src.budget.model import Budget
 from src.spending.tracker import SpendingTracker
 from src.utils.formatting import format_usd, parse_currency
+from src.utils.categorize import infer_category
 
 
 @dataclass
@@ -47,6 +48,39 @@ class BudgetChatAgent:
         if lower in {"quit", "exit"}:
             save_budget(self.budget)
             return "Goodbye."
+
+        # Add/Create category intent: "add category Travel [to $300]"
+        for prefix in ("add category ", "create category ", "new category "):
+            if lower.startswith(prefix):
+                try:
+                    remainder = t[len(prefix):]
+                    name = remainder.strip()
+                    amount = 0.0
+                    # allow optional budget specification
+                    rlow = remainder.lower()
+                    if " to " in rlow:
+                        name_part, amt_part = remainder.split(" to ", 1)
+                        name = name_part.strip()
+                        amount = parse_currency(amt_part)
+                    elif "=" in remainder:
+                        name_part, amt_part = remainder.split("=", 1)
+                        name = name_part.strip()
+                        amount = parse_currency(amt_part)
+                    elif " with " in rlow:
+                        name_part, amt_part = remainder.split(" with ", 1)
+                        name = name_part.strip()
+                        amount = parse_currency(amt_part)
+
+                    if not name:
+                        raise ValueError
+
+                    self.budget.set_category(name, amount)
+                    save_budget(self.budget)
+                    if amount:
+                        return f"Set {name} to {format_usd(amount)}."
+                    return f"Added category {name} with {format_usd(0.0)} budget. Use 'set {name} to $amount' to set a budget."
+                except Exception:
+                    return "I couldn't parse that. Try: add category Travel to $300"
 
         # Set budget intent: "set Food to $200" / "Food = 200"
         if any(k in lower for k in ["set ", " = ", " to "]):
@@ -92,16 +126,23 @@ class BudgetChatAgent:
                         cat = t.lower().split(" to ", 1)[1].strip()
                     else:
                         raise ValueError
-                # map category by case-insensitive match
+                # map category by case-insensitive match, else try auto-categorization from description
                 matched = None
                 for c in self.budget.categories:
                     if c.lower() == cat.lower():
                         matched = c
                         break
                 if not matched:
-                    return "Unknown category. Say 'list categories' or create it with 'set <name> to <amount>'."
+                    # attempt inference using the provided description as 'cat'
+                    guessed = infer_category(cat, list(self.budget.categories.keys()))
+                    if guessed:
+                        matched = guessed
+                    else:
+                        return "Unknown category. Say 'list categories' or create it with 'set <name> to <amount>'."
                 self.tracker.record_expense(matched, amount)
                 save_budget(self.budget)
+                if matched and matched.lower() != cat.lower():
+                    return f"Added {format_usd(amount)} to {matched} (auto-categorized from '{cat}')."
                 return f"Added {format_usd(amount)} to {matched}."
             except Exception:
                 return "I couldn't parse that. Try: spent $12 on Food"
@@ -131,10 +172,14 @@ class BudgetChatAgent:
     def _help(self) -> str:
         return (
             "Commands:\n"
+            "- add category Travel to $300\n"
+            "- create category Utilities\n"
+            "- new category Entertainment\n"
             "- set Food to $200\n"
             "- spent $12.50 on Food\n"
+            "- spent 30 on groceries  (auto-categorizes to Food if present)\n"
             "- add 5 to Fun\n"
-            "- show summary\n"
-            "- list categories\n"
-            "- save | quit\n"
+            "- show summary | status\n"
+            "- list categories | categories\n"
+            "- save | persist | quit\n"
         )
