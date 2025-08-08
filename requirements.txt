@@ -1,5 +1,8 @@
-pillow
-pytesseract
-pandas
-flask
-streamlit
+# Minimal runtime deps for the chat agent
+
+# Optional OCR for receipts parsing
+# pillow
+# pytesseract
+
+# Optional UI prototype (not required)
+# streamlit
