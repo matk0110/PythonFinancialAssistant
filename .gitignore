@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+dist/
+build/
+.coverage*
+.pytest_cache/
+.mypy_cache/
+.cache/
+
+# Environments
+.env
+.env.*
+.venv/
+venv/
+ENV/
+env/
+Pipfile.lock
+poetry.lock
+
+# IDE/Editor
+.vscode/
+.idea/
+
+# Runtime data
+data/
+receipts_samples/
+*.log
+
+# Streamlit
+.streamlit/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.env
+venv/
+.env*/
+.idea/
+.vscode/
+.mypy_cache/
+.pytest_cache/
+*.DS_Store
+
+# Images / receipts examples
+receipts_samples/
+
+# Local runtime data
+data/
